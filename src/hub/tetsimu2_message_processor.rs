@@ -29,7 +29,7 @@ impl Tetsimu2MessageProcessor {
       match self.t2_r.recv() {
         Ok(v) => match v {
           Tetsimu2Message::AnalyzePc(m) => {
-            processors::analyze_pc::execute(&self.out, m);
+            processors::analyze_pc::execute(&self.out, m, &self.settings);
           }
         },
         Err(e) => {

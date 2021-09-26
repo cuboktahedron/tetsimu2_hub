@@ -1,3 +1,4 @@
+use crate::tetfu::core::Tetsimu2Content;
 use crate::tetfu::core::ASCII_TABLE;
 use crate::tetfu::core::ENCODE_TABLE;
 use crate::tetfu::core::MAX_TETFU_FIELD_HEIGHT;
@@ -7,12 +8,6 @@ use crate::tetsimu2::core::FieldCellValue;
 use crate::tetsimu2::core::MAX_FIELD_WIDTH;
 use crate::tetsimu2::field::Field;
 use substring::Substring;
-
-#[derive(Debug, Eq, PartialEq)]
-pub struct Tetsimu2Content {
-  pub field: Field,
-  pub comment: String,
-}
 
 pub struct TetfuEncoder;
 

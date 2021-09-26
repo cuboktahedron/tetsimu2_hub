@@ -28,7 +28,16 @@ mod tests {
     })
     .unwrap();
 
-    let expected = r#"{"header":{"message_id":"abcd"},"body":{"data":"Unhandled message"}}"#;
+    #[rustfmt::skip]
+    let expected = String::from("")
+      + "{"
+        + "\"header\":{"
+          + "\"message_id\":\"abcd\""
+        + "},"
+        + "\"body\":{"
+          + "\"data\":\"Unhandled message\""
+        + "}"
+      + "}";
 
     assert_eq!(actual, expected);
   }

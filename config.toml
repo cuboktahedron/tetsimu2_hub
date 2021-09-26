@@ -1,0 +1,6 @@
+[hub]
+host = "localhost"
+port = 3012
+
+[solution_finder]
+path = "/home/cuboktahedron/tools/solution-finder-1.00"

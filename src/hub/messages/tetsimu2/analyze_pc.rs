@@ -5,13 +5,13 @@ use serde_big_array::big_array;
 big_array! { BigArray; 300 }
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
-pub struct AnalyzePcMessage {
-  header: Tetsimu2MessageHeader,
-  body: AnalyzePcMessageBody,
+pub struct AnalyzePcMessageReq {
+  pub header: Tetsimu2MessageHeader,
+  pub body: AnalyzePcMessageReqBody,
 }
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
-pub struct AnalyzePcMessageBody {
+pub struct AnalyzePcMessageReqBody {
   #[serde(with = "BigArray")]
   pub field: [u8; 300],
   pub nexts: String,
@@ -23,7 +23,7 @@ mod tests {
 
   #[test]
   fn deserialize() {
-    let actual = serde_json::from_str::<AnalyzePcMessage>(
+    let actual = serde_json::from_str::<AnalyzePcMessageReq>(
       r#"
     {
       "header": {
@@ -68,11 +68,11 @@ mod tests {
     )
     .unwrap();
 
-    let expected = AnalyzePcMessage {
+    let expected = AnalyzePcMessageReq {
       header: Tetsimu2MessageHeader {
         message_id: String::from("abcd"),
       },
-      body: AnalyzePcMessageBody {
+      body: AnalyzePcMessageReqBody {
         field: [0; 300],
         nexts: String::from("IJLOSTZ"),
       },
