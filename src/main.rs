@@ -1,6 +1,5 @@
-extern crate env_logger;
-
 use anyhow::Result;
+use env_logger;
 use std::io::stdin;
 use std::io::stdout;
 use std::io::Write;
@@ -29,7 +28,6 @@ fn main() {
             return;
         }
     };
-    println!("");
 
     println!(
         "Starting websocket server. Listening on {}:{}",

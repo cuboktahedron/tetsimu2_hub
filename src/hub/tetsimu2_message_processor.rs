@@ -1,6 +1,7 @@
 use crate::hub::messages::tetsimu2::Tetsimu2Message;
 use crate::hub::processors;
 use crate::settings::Settings;
+use log::error;
 use std::sync::mpsc::Receiver;
 use std::sync::Arc;
 use std::thread;
@@ -33,7 +34,7 @@ impl Tetsimu2MessageProcessor {
           }
         },
         Err(e) => {
-          eprintln!("{:?}", e);
+          error!("{:?}", e);
           break;
         }
       }

@@ -7,6 +7,7 @@ use crate::hub::tetsimu2_message_processor::Tetsimu2MessageProcessor;
 use crate::settings::Settings;
 use anyhow::Context;
 use anyhow::Result;
+use log::info;
 use serde_json::from_str;
 use std::sync::mpsc;
 use std::sync::mpsc::Sender;
@@ -21,11 +22,8 @@ pub struct HubServer {
 }
 
 impl Handler for HubServer {
-  fn on_open(&mut self, handshake: Handshake) -> ws::Result<()> {
-    match handshake.request.hashed_key() {
-      Ok(hashed_key) => Ok(println!("[Connected] hash_key: {}]", hashed_key)),
-      Err(e) => Err(e),
-    }?;
+  fn on_open(&mut self, _handshake: Handshake) -> ws::Result<()> {
+    info!("Connected[{}]", self.out.connection_id());
 
     let (t2_t, t2_r) = mpsc::channel::<Tetsimu2Message>();
     Tetsimu2MessageProcessor::start(t2_r, self.out.clone(), self.settings.clone());
@@ -56,7 +54,7 @@ impl Handler for HubServer {
   }
 
   fn on_close(&mut self, code: CloseCode, reason: &str) {
-    println!("[Closed] Disconnected for ({:?}) {}", code, reason);
+    info!("Disconnected[{}] for ({:?}) {}", self.out.connection_id(), code, reason);
   }
 }
 

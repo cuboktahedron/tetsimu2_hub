@@ -1,6 +1,7 @@
 use crate::hub::messages::hub::HubMessage;
 use std::sync::mpsc::Receiver;
 use std::thread;
+use log::error;
 
 pub struct HubMessageProcessor {
   pub hub_r: Receiver<HubMessage>,
@@ -24,7 +25,7 @@ impl HubMessageProcessor {
           self.out.send(send_message).ok();
         }
         Err(e) => {
-          eprintln!("{:?}", e);
+          error!("{:?}", e);
           break;
         }
       }

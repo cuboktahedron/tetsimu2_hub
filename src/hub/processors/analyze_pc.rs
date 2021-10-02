@@ -1,3 +1,5 @@
+use log::{debug, warn};
+
 use crate::hub::messages::hub::analyze_pc::AnalyzePcMessageRes;
 use crate::hub::messages::hub::analyze_pc::AnalyzePcMessageResBody;
 use crate::hub::messages::hub::analyze_pc::AnalyzePcMessageResResult;
@@ -87,15 +89,15 @@ fn execute_request(
     }
   };
 
-  println!("status: {}", output.status);
+  debug!("status: {}", output.status);
 
   if output.status.success() {
     let stdout = String::from_utf8_lossy(&output.stdout);
-    println!("stdout: {}", &stdout);
+    debug!("stdout:\n{}", &stdout);
     let found_paths = analyze_path_nums(&stdout);
     return ExecuteRequestResult::Succeeded(found_paths);
   } else {
-    println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+    warn!("stderr:\n{}", String::from_utf8_lossy(&output.stderr));
 
     let err_message = String::from_utf8_lossy(&output.stderr);
     return ExecuteRequestResult::OtherError(String::from(err_message));
@@ -122,7 +124,7 @@ fn execute_response(
   let res_result = match request_result {
     ExecuteRequestResult::Succeeded(found_paths) => {
       execute_response_succeeced(out, request, found_paths)
-    },
+    }
     ExecuteRequestResult::OtherError(message) => {
       execute_response_other_error(out, request, message)
     }
@@ -150,6 +152,7 @@ fn execute_response_succeeced(
   };
 
   let json = serde_json::to_string(&response)?;
+  debug!("response:\n{}", json);
   out.send(json)?;
 
   Ok(())
@@ -172,6 +175,7 @@ fn execute_response_other_error(
   };
 
   let json = serde_json::to_string(&response)?;
+  debug!("response:\n{}", json);
   out.send(json)?;
 
   Ok(())
