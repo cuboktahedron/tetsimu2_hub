@@ -10,7 +10,7 @@ use serde::Serialize;
 
 #[derive(Serialize, Debug, PartialEq, Eq)]
 pub enum HubMessage {
-  AnalyzePcMessageRes(AnalyzePcMessageRes),
-  LogMessage(LogMessage),
-  UnhandledMessage(UnhandledMessage),
+  AnalyzePc(AnalyzePcMessageRes),
+  Log(LogMessage),
+  Unhandled(UnhandledMessage),
 }

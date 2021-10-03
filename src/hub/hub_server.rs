@@ -70,7 +70,7 @@ impl HubServer {
   }
 
   fn handle_unsupported_message(&self) -> Result<()> {
-    let message = HubMessage::UnhandledMessage(UnhandledMessage {
+    let message = HubMessage::Unhandled(UnhandledMessage {
       header: HubMessageHeader {
         message_id: String::from(Uuid::new_v4().to_string()),
       },

@@ -1,3 +1,5 @@
+use crate::hub::messages::hub::log::LogMessage;
+use crate::hub::messages::hub::HubMessage;
 use log::{debug, warn};
 
 use crate::hub::messages::hub::analyze_pc::AnalyzePcMessageRes;
@@ -28,14 +30,17 @@ enum ExecuteRequestResult {
 }
 
 pub fn execute(out: &ws::Sender, message: AnalyzePcMessageReq, settings: &Arc<Settings>) {
-  let request_result = execute_request(&message, &settings.solution_finder);
+  let request_result = execute_request(out, &message, &settings.solution_finder);
   execute_response(out, request_result, &message);
 }
 
 fn execute_request(
+  out: &ws::Sender,
   message: &AnalyzePcMessageReq,
   settings: &SolutionFinderSettings,
 ) -> ExecuteRequestResult {
+  log(out, "Start analyze");
+
   let sf_root = if let Some(x) = &settings.path {
     x
   } else {
@@ -140,7 +145,7 @@ fn execute_response_succeeced(
   request: &AnalyzePcMessageReq,
   found_paths: String,
 ) -> Result<()> {
-  let response = AnalyzePcMessageRes {
+  let response = HubMessage::AnalyzePc(AnalyzePcMessageRes {
     header: HubMessageResHeader {
       message_id: Uuid::new_v4().to_string(),
       request_message_id: request.header.message_id.clone(),
@@ -149,7 +154,7 @@ fn execute_response_succeeced(
     body: AnalyzePcMessageResBody {
       message: found_paths,
     },
-  };
+  });
 
   let json = serde_json::to_string(&response)?;
   debug!("response:\n{}", json);
@@ -163,7 +168,7 @@ fn execute_response_other_error(
   request: &AnalyzePcMessageReq,
   message: String,
 ) -> Result<()> {
-  let response = AnalyzePcMessageRes {
+  let response = HubMessage::AnalyzePc(AnalyzePcMessageRes {
     header: HubMessageResHeader {
       message_id: Uuid::new_v4().to_string(),
       request_message_id: request.header.message_id.clone(),
@@ -172,11 +177,21 @@ fn execute_response_other_error(
     body: AnalyzePcMessageResBody {
       message: String::from(message),
     },
-  };
+  });
 
   let json = serde_json::to_string(&response)?;
   debug!("response:\n{}", json);
   out.send(json)?;
 
   Ok(())
+}
+
+fn log(out: &ws::Sender, message: &str) {
+  let log = LogMessage::create(message);
+  let message = HubMessage::Log(log);
+
+  if let Ok(json) = serde_json::to_string(&message) {
+    debug!("response:\n{}", json);
+    out.send(json).ok();
+  }
 }
