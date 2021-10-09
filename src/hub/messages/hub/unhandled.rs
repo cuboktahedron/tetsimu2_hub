@@ -9,7 +9,7 @@ pub struct UnhandledMessage {
 
 #[derive(Serialize, Debug, PartialEq, Eq)]
 pub struct UnhandledMessageBody {
-  pub data: String,
+  pub message: String,
 }
 
 #[cfg(test)]

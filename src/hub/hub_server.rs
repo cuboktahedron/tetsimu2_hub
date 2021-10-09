@@ -43,7 +43,7 @@ impl Handler for HubServer {
         .send(x)
         .context("Could not send received message to processor"),
       Err(_) => self
-        .handle_unsupported_message()
+        .handle_unhandled_message(&received_message)
         .context("Failed to handle unsupported message"),
     };
 
@@ -54,7 +54,12 @@ impl Handler for HubServer {
   }
 
   fn on_close(&mut self, code: CloseCode, reason: &str) {
-    info!("Disconnected[{}] for ({:?}) {}", self.out.connection_id(), code, reason);
+    info!(
+      "Disconnected[{}] for ({:?}) {}",
+      self.out.connection_id(),
+      code,
+      reason
+    );
   }
 }
 
@@ -69,13 +74,16 @@ impl HubServer {
     Ok(v)
   }
 
-  fn handle_unsupported_message(&self) -> Result<()> {
+  fn handle_unhandled_message(&self, received_message: &str) -> Result<()> {
     let message = HubMessage::Unhandled(UnhandledMessage {
       header: HubMessageHeader {
         message_id: String::from(Uuid::new_v4().to_string()),
       },
       body: UnhandledMessageBody {
-        data: String::from("Unsupported message received."),
+        message: String::from(format!(
+          "Unsupported message received. ({})",
+          received_message
+        )),
       },
     });
 
