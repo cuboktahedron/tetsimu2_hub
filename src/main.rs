@@ -29,6 +29,8 @@ fn main() {
         }
     };
 
+    println!("{}", config);
+
     println!(
         "Starting websocket server. Listening on {}:{}",
         config.hub.host, config.hub.port

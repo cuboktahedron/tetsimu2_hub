@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use toml::from_str;
 
 use std::fs::File;
@@ -20,6 +21,30 @@ pub struct HubSettings {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SolutionFinderSettings {
     pub path: Option<String>,
+}
+
+impl fmt::Display for Settings {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "----------------------------------------")?;
+        writeln!(f, "{}", self.hub)?;
+        write!(f, "{}", self.solution_finder)?;
+        writeln!(f, "----------------------------------------")
+    }
+}
+
+impl fmt::Display for HubSettings {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "[hub]")?;
+        writeln!(f, "  host: {}", self.host)?;
+        writeln!(f, "  port: {}", self.port)
+    }
+}
+
+impl fmt::Display for SolutionFinderSettings {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "[solution_finder]")?;
+        writeln!(f, "  path: {}", self.path.clone().unwrap_or_default())
+    }
 }
 
 impl Settings {
