@@ -1,5 +1,7 @@
 use crate::hub::messages::hub::log::LogMessage;
 use crate::hub::messages::hub::HubMessage;
+use crate::tetsimu2::core::MAX_FIELD_HEIGHT;
+use crate::tetsimu2::core::MAX_FIELD_WIDTH;
 use log::{debug, warn};
 
 use crate::hub::messages::hub::analyze_pc::AnalyzePcMessageRes;
@@ -69,8 +71,17 @@ fn execute_request(
     Err(e) => return ExecuteRequestResult::OtherError(format!("{:?}", e)),
   };
 
+  let field = Field { data };
+  debug!("field:\n {:?}", field);
+
+  let clear_line = decide_clear_line(&field);
+  debug!("clear_line: {}", clear_line);
+  if clear_line == -1 {
+    return ExecuteRequestResult::OtherError(String::from("Empty cell must be multiples of 4"));
+  }
+
   let tetfu = tetfu_encoder.encode(&Tetsimu2Content {
-    field: Field { data },
+    field,
     comment: String::from(""),
   });
 
@@ -82,6 +93,8 @@ fn execute_request(
     .arg(tetfu)
     .arg("--patterns")
     .arg(&message.body.nexts)
+    .arg("--clear-line")
+    .arg(clear_line.to_string())
     .arg("--format")
     .arg("html")
     .current_dir(settings.path.clone().unwrap())
@@ -102,10 +115,52 @@ fn execute_request(
     let found_paths = analyze_path_nums(&stdout);
     return ExecuteRequestResult::Succeeded(found_paths);
   } else {
-    warn!("stderr:\n{}", String::from_utf8_lossy(&output.stderr));
-
     let err_message = String::from_utf8_lossy(&output.stderr);
-    return ExecuteRequestResult::OtherError(String::from(err_message));
+    warn!("stderr:\n{}", err_message);
+
+    let lines = err_message.split("\n").map(|s| s.trim());
+    for line in lines {
+      println!("{}", line);
+      if line.starts_with("Message: ") {
+        return ExecuteRequestResult::OtherError(String::from(&line["Message: ".len()..]));
+      }
+    }
+
+    return ExecuteRequestResult::OtherError(String::from("Failed to analyze."));
+  }
+}
+
+fn decide_clear_line(field: &Field) -> i32 {
+  let mut tmp_clear_line = 4;
+
+  'outer: for y in (0..MAX_FIELD_HEIGHT).rev() {
+    for x in 0..MAX_FIELD_WIDTH {
+      if field.get_cell(x, y) != FieldCellValue::None {
+        tmp_clear_line = y + 1;
+        break 'outer;
+      }
+    }
+  }
+
+  let mut empty_cell_num = 0;
+  for y in 0..tmp_clear_line {
+    for x in 0..MAX_FIELD_WIDTH {
+      if field.get_cell(x, y) == FieldCellValue::None {
+        empty_cell_num += 1;
+      }
+    }
+  }
+
+  debug!("empty_cell_num: {}", empty_cell_num);
+
+  if empty_cell_num % 2 == 1 {
+    return -1;
+  }
+
+  if empty_cell_num % 4 == 0 {
+    return tmp_clear_line;
+  } else {
+    return tmp_clear_line + 1;
   }
 }
 
