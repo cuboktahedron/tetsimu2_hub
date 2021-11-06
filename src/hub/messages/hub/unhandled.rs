@@ -23,7 +23,7 @@ mod tests {
         message_id: String::from("abcd"),
       },
       body: UnhandledMessageBody {
-        data: String::from("Unhandled message"),
+        message: String::from("Unhandled message"),
       },
     })
     .unwrap();
@@ -35,7 +35,7 @@ mod tests {
           + "\"message_id\":\"abcd\""
         + "},"
         + "\"body\":{"
-          + "\"data\":\"Unhandled message\""
+          + "\"message\":\"Unhandled message\""
         + "}"
       + "}";
 
