@@ -2,7 +2,6 @@
 
 [Tetsimu2](https://github.com/cuboktahedron/tetsimu2)の外部連携ツールです。
 
-
 # 何ができるか
 
 tetsimu2から外部のツールを呼び出したり、またその逆を行ったりします。  

@@ -10,6 +10,8 @@ use tetsimu2_hub::settings::HubSettings;
 use tetsimu2_hub::settings::Settings;
 use tetsimu2_hub::settings::SolutionFinderSettings;
 
+const VERSION: &str = "0.9.0";
+
 fn start_server(settings: Settings) -> Result<()> {
     HubServer::listen(Arc::new(settings))
 }
@@ -18,7 +20,7 @@ const CONFIG_FILE: &str = "config.toml";
 
 fn main() {
     env_logger::init();
-    println!("Tetsimu2 Hub 0.0.1");
+    println!("Tetsimu2 Hub {}", VERSION);
 
     println!("Load {}", CONFIG_FILE);
     let config = match load_config(CONFIG_FILE) {
