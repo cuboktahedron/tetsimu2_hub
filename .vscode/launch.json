@@ -1,0 +1,64 @@
+{
+  // IntelliSense を使用して利用可能な属性を学べます。
+  // 既存の属性の説明をホバーして表示します。
+  // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'tetsimu2_hub'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=tetsimu2_hub"
+        ],
+        "filter": {
+          "name": "tetsimu2_hub",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'tetsimu2_hub'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=tetsimu2_hub",
+          "--package=tetsimu2_hub"
+        ],
+        "filter": {
+          "name": "tetsimu2_hub",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'tetsimu2_hub'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=tetsimu2_hub",
+          "--package=tetsimu2_hub"
+        ],
+        "filter": {
+          "name": "tetsimu2_hub",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

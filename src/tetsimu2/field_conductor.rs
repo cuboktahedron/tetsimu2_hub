@@ -16,7 +16,7 @@ pub struct FieldConductor {
 impl FieldConductor {
   pub fn new(mut gen: Box<dyn NextGenerator>) -> FieldConductor {
     let current = CurrentTetromino {
-      r#type: gen.next(),
+      r#type: gen.next().expect("Cannot generate next."),
       direction: Direction::Up,
       x: 4,
       y: 19,
@@ -47,8 +47,7 @@ impl FieldConductor {
     self.current.drop_to_bottom(&self.field);
     self.field.settle_tetromino(&self.current);
 
-    if !self.field.is_in_inner_field(&self.current) 
-    {
+    if !self.field.is_in_inner_field(&self.current) {
       self.is_dead = true;
       return;
     }
@@ -89,7 +88,7 @@ impl FieldConductor {
 
   fn proceed_next(&mut self) -> bool {
     let mut current = CurrentTetromino {
-      r#type: self.next_generator.next(),
+      r#type: self.next_generator.next().expect("Cannot generate next."),
       direction: Direction::Up,
       x: 4,
       y: 19,
@@ -130,8 +129,8 @@ impl FieldConductor {
 mod tests {
   use super::*;
   use crate::dev_utils::tests::tetsimu2::field::make_field;
-  use crate::dev_utils::tests::tetsimu2::next_generator::FixedNextGenerator;
   use crate::tetsimu2::core::Tetromino;
+  use crate::tetsimu2::fixed_next_generator::FixedNextGenerator;
 
   #[test]
   fn hard_drop() {

@@ -8,6 +8,7 @@ license = "MIT"
 
 [dependencies]
 anyhow = "1.0.42"
+enumset = "1.0.4"
 env_logger = "0.9.0"
 log = "0.4.14"
 num-derive = "0.3.3"
@@ -20,6 +21,8 @@ substring = "1.4.5"
 toml = "0.5.8"
 uuid = { version = "0.8.2", features = ["v4"] }
 ws = "0.9.1"
+cold-clear = { git = "https://github.com/MinusKelvin/cold-clear/" }
+libtetris = { git = "https://github.com/MinusKelvin/cold-clear/" }
 
 [dev-dependencies]
 parameterized = "0.3.1"

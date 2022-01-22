@@ -2,7 +2,8 @@ use crate::tetsimu2::core::Tetromino;
 use rand::Rng;
 
 pub trait NextGenerator {
-  fn next(&mut self) -> Tetromino;
+  fn next(&mut self) -> Option<Tetromino>;
+  fn has_next(&self) -> bool;
 }
 
 pub struct RandomNextGenerator {
@@ -16,7 +17,7 @@ impl RandomNextGenerator {
 }
 
 impl NextGenerator for RandomNextGenerator {
-  fn next(&mut self) -> Tetromino {
+  fn next(&mut self) -> Option<Tetromino> {
     if self.bag.is_empty() {
       self.bag.push(Tetromino::I);
       self.bag.push(Tetromino::J);
@@ -29,7 +30,11 @@ impl NextGenerator for RandomNextGenerator {
 
     let p = rand::thread_rng().gen_range(0..self.bag.len());
     let tetromino = self.bag.remove(p);
-    tetromino
+    Some(tetromino)
+  }
+
+  fn has_next(&self) -> bool {
+    true
   }
 }
 
@@ -45,7 +50,7 @@ mod tests {
       let mut nexts: Vec<Tetromino> = Vec::new();
 
       for _ in 0..7 {
-        nexts.push(gen.next());
+        nexts.push(gen.next().unwrap());
       }
       nexts.sort();
 

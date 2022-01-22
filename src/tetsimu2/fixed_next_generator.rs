@@ -12,11 +12,15 @@ impl FixedNextGenerator {
 }
 
 impl NextGenerator for FixedNextGenerator {
-  fn next(&mut self) -> Tetromino {
+  fn next(&mut self) -> Option<Tetromino> {
     if self.source.is_empty() {
-      panic!("Generator source Exhausted.");
+      return None;
     }
 
-    self.source.remove(0)
+    Some(self.source.remove(0))
+  }
+
+  fn has_next(&self) -> bool {
+    !self.source.is_empty()
   }
 }

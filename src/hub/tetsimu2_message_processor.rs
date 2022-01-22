@@ -32,8 +32,10 @@ impl Tetsimu2MessageProcessor {
   }
 
   fn main_loop(&mut self) {
+    println!("receive loop start");
+
     loop {
-      let received_message = self.t2_r.recv();
+      let received_message = self.t2_r.try_recv();
       match received_message {
         Ok(message) => {
           if let Some(processor) = &self.processor {
@@ -64,15 +66,29 @@ impl Tetsimu2MessageProcessor {
                   &self.settings,
                 ));
               }
+              Tetsimu2Message::InitTutor(m) => {
+                self.processor = Some(processors::tutor::execute(&self.out, m, &self.settings));
+              }
+              _ => {}
             }
           }
         }
-        Err(e) => {
-          error!("{:?}", e);
-          break;
-        }
+        Err(e) => match e {
+          std::sync::mpsc::TryRecvError::Disconnected => {
+            error!("Connection disconnected.");
+            if let Some(processor) = &self.processor {
+              processor.halt();
+            }
+            break;
+          }
+          std::sync::mpsc::TryRecvError::Empty => {
+            std::thread::sleep(std::time::Duration::from_millis(10));
+          }
+        },
       }
     }
+
+    println!("mainloop end");
   }
 
   fn log(&self, message: &str) {

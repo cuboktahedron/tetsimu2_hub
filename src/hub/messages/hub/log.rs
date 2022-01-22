@@ -31,7 +31,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn deserialize() {
+  fn serialize() {
     let actual = serde_json::to_string(&LogMessage {
       header: HubMessageHeader {
         message_id: String::from("abcd"),

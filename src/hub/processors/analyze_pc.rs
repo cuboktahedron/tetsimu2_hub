@@ -41,6 +41,7 @@ impl Tetsimu2Processor for AnalyzePcProcesssor {
       Tetsimu2Message::AnalyzePc(m) => {
         self.execute_analyze_pc(&m);
       }
+      _ => panic!("Passed message that cannnot be handled."),
     }
   }
 
@@ -61,7 +62,6 @@ impl AnalyzePcProcesssor {
   fn execute_analyze_pc(&self, message: &AnalyzePcMessageReq) {
     let request_result = self.execute_request(&message);
     self.execute_response(request_result, &message);
-  
     // TODO: How to handle panic
     self.is_done.store(true, Ordering::Relaxed);
   }

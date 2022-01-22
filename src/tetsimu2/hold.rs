@@ -5,10 +5,10 @@ pub enum HoldError {
   HoldTwice(String),
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Hold {
-  holded: Option<Tetromino>,
-  can_hold: bool,
+  pub holded: Option<Tetromino>,
+  pub can_hold: bool,
 }
 
 impl Hold {
