@@ -17,7 +17,7 @@ use crate::tetsimu2::core::MAX_FIELD_WIDTH;
 use crate::tetsimu2::field::Field;
 use anyhow::Context;
 use anyhow::Result;
-use log::{debug, warn};
+use log::{debug, info, warn};
 use num_traits::FromPrimitive;
 use std::convert::TryInto;
 use std::path::Path;
@@ -54,7 +54,7 @@ impl Tetsimu2Processor for AnalyzePcProcesssor {
   }
 
   fn halt(&self) {
-    unimplemented!()
+    info!("Halt.");
   }
 }
 
@@ -67,7 +67,7 @@ impl AnalyzePcProcesssor {
   }
 
   fn execute_request(&self, message: &AnalyzePcMessageReq) -> ExecuteRequestResult {
-    self.log("Start analyze");
+    self.log("Start analyze.");
 
     let settings = self.settings.clone();
     let sf_root = if let Some(x) = &settings.solution_finder.path {
@@ -81,8 +81,6 @@ impl AnalyzePcProcesssor {
     if !Path::new(&sf_root).join(MAIN_JAR).exists() {
       return ExecuteRequestResult::OtherError(format!("Cannot find {}.", MAIN_JAR));
     }
-
-    let tetfu_encoder = TetfuEncoder::new();
 
     let data_vec = match message
       .body
@@ -109,6 +107,7 @@ impl AnalyzePcProcesssor {
       return ExecuteRequestResult::OtherError(String::from("Empty cell must be multiples of 4"));
     }
 
+    let tetfu_encoder = TetfuEncoder::new();
     let tetfu = tetfu_encoder.encode(&Tetsimu2Content {
       field,
       comment: String::from(""),
@@ -149,7 +148,6 @@ impl AnalyzePcProcesssor {
 
       let lines = err_message.split("\n").map(|s| s.trim());
       for line in lines {
-        println!("{}", line);
         if line.starts_with("Message: ") {
           return ExecuteRequestResult::OtherError(String::from(&line["Message: ".len()..]));
         }

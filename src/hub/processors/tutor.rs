@@ -24,7 +24,7 @@ use cold_clear;
 use core::sync::atomic::{AtomicBool, Ordering};
 use enumset::EnumSet;
 use libtetris::*;
-use log::{debug, error};
+use log::{debug, error, info};
 use num_traits::FromPrimitive;
 use std::convert::TryFrom;
 use std::sync::Arc;
@@ -128,15 +128,18 @@ impl Tetsimu2Processor for TutorProcessor {
   }
 
   fn halt(&self) {
-    println!("TutorProcessor halted.");
+    info!("Halted.");
     self.is_done.store(true, Ordering::Relaxed);
   }
 }
 
 impl TutorProcessor {
   fn main_loop(&self) {
+    info!("TutorProcessor is ready.");
+
     while !self.is_done.load(Ordering::Relaxed) {
       std::thread::sleep(Duration::from_millis(250));
+
       let mut status = self.status.lock().unwrap();
       let request_message_id = status.status_id.clone();
 
@@ -149,46 +152,49 @@ impl TutorProcessor {
       }
       let (_, info) = poll_result.ok().unwrap();
 
-      let steps: Vec<_> = match info {
-        cold_clear::Info::Normal(info) => info
-          .plan
-          .into_iter()
-          .map(|(falling_piece, _)| {
-            let r#type = Tetromino::from(falling_piece.kind.0);
-            let dir = crate::tetsimu2::core::Direction::from(falling_piece.kind.1);
-            let mut x = falling_piece.x;
-            let mut y = falling_piece.y;
-            if falling_piece.kind.0 == Piece::I {
-              match falling_piece.kind.1 {
-                RotationState::West => {
-                  y += 1;
-                }
-                RotationState::South => {
-                  y -= 1;
-                  x += 1;
-                }
-                RotationState::East => {
-                  x -= 1;
-                }
-                _ => {}
-              }
-            }
-
-            Step {
-              r#type: r#type as u8,
-              dir: dir as u8,
-              x: x as i8,
-              y: y as i8,
-            }
-          })
-          .collect(),
+      let plan = match info {
+        cold_clear::Info::Normal(info) => info.plan,
+        cold_clear::Info::PcLoop(info) => info.plan,
         _ => {
-          println!("{:?}", info);
           continue;
         }
       };
 
+      let steps: Vec<_> = plan
+        .into_iter()
+        .map(|(falling_piece, _)| {
+          let r#type = Tetromino::from(falling_piece.kind.0);
+          let dir = crate::tetsimu2::core::Direction::from(falling_piece.kind.1);
+          let mut x = falling_piece.x;
+          let mut y = falling_piece.y;
+          if falling_piece.kind.0 == Piece::I {
+            match falling_piece.kind.1 {
+              RotationState::West => {
+                y += 1;
+              }
+              RotationState::South => {
+                y -= 1;
+                x += 1;
+              }
+              RotationState::East => {
+                x -= 1;
+              }
+              _ => {}
+            }
+          }
+
+          Step {
+            r#type: r#type as u8,
+            dir: dir as u8,
+            x: x as i8,
+            y: y as i8,
+          }
+        })
+        .collect();
+
       if steps != status.prev_steps {
+        debug!("Steps changed.");
+
         status.prev_steps = steps;
         continue;
       }
@@ -216,6 +222,8 @@ impl TutorProcessor {
   }
 
   fn initialize(&self, message: &InitTutorMessageReq) {
+    info!("Initializing.");
+
     let response = HubMessage::InitTutor(InitTutorMessageRes {
       header: HubMessageResHeader {
         message_id: Uuid::new_v4().to_string(),
@@ -228,9 +236,13 @@ impl TutorProcessor {
     let json = serde_json::to_string(&response).unwrap();
     debug!("response:\n{}", json);
     self.out.send(json).ok();
+
+    info!("Initialize done.");
   }
 
   fn terminate(&self, message: &TermTutorMessageReq) {
+    info!("Terminating.");
+
     let response = HubMessage::TermTutor(TermTutorMessageRes {
       header: HubMessageResHeader {
         message_id: Uuid::new_v4().to_string(),
@@ -244,9 +256,13 @@ impl TutorProcessor {
     debug!("response:\n{}", json);
     self.out.send(json).ok();
     self.is_done.store(true, Ordering::Relaxed);
+
+    info!("Terminate done.");
   }
 
   fn update_current_stetus(&self, message: &NotifyStatusMessageReq) {
+    debug!("Update current status. {:?}", message);
+
     let mut status = self.status.lock().unwrap();
     status.status_id = message.header.message_id.clone();
 

@@ -5,7 +5,7 @@ use crate::hub::processors;
 use crate::hub::processors::tetsimu2_processor::BeforeExecuteResult;
 use crate::hub::processors::tetsimu2_processor::Tetsimu2Processor;
 use crate::settings::Settings;
-use log::{debug, error};
+use log::{debug, error, info};
 use std::sync::mpsc::Receiver;
 use std::sync::Arc;
 use std::thread;
@@ -32,7 +32,7 @@ impl Tetsimu2MessageProcessor {
   }
 
   fn main_loop(&mut self) {
-    println!("receive loop start");
+    info!("Ready to receive tetsimu2 message");
 
     loop {
       let received_message = self.t2_r.try_recv();
@@ -88,7 +88,7 @@ impl Tetsimu2MessageProcessor {
       }
     }
 
-    println!("mainloop end");
+    info!("End to receive tetsimu2 message");
   }
 
   fn log(&self, message: &str) {
