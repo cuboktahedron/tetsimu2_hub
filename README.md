@@ -4,8 +4,11 @@
 
 # 何ができるか
 
-tetsimu2から外部のツールを呼び出したり、またその逆を行ったりします。  
-現状は、[solution-finder](https://github.com/knewjade/solution-finder/)と連携して現在のフィールド状態からパフェ手順を探すことできます。
+- Perfect clear検索
+  [solution-finder](https://github.com/knewjade/solution-finder/)と連携して現在のフィールド状態からパフェ手順を探します。
+  この機能を使用するには、別途solution-finderをDLする必要があります。
+- Tutor機能
+  AI([cold-clear](https://github.com/MinusKelvin/cold-clear)) に次の設置手順を教えてもらう。
 
 # ライセンス
 
@@ -21,6 +24,7 @@ MIT
 本ツールではそれぞれ以下のライセンスで公開されているクレートを使用しています。
 
 ## Apache-2.0 OR MIT
+
 - [anyhow](https://docs.rs/anyhow/)
 - [env_logger](https://docs.rs/env_logger/)
 - [log](https://docs.rs/log/)
@@ -35,4 +39,9 @@ MIT
 - [uuid](https://docs.rs/uuid/)
 
 ## MIT
+
 - [ws](https://docs.rs/ws/)
+
+## MPL-2.0
+
+- [cold-clear](https://github.com/MinusKelvin/cold-clear)
