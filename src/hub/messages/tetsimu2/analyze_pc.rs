@@ -15,6 +15,9 @@ pub struct AnalyzePcMessageReqBody {
   #[serde(with = "BigArray")]
   pub field: [u8; 300],
   pub nexts: String,
+  pub clear_line: u8,
+  pub use_hold: bool,
+  pub drop_type: u8,
 }
 
 #[cfg(test)]
@@ -62,7 +65,10 @@ mod tests {
           0,0,0,0,0,0,0,0,0,0,
           0,0,0,0,0,0,0,0,0,0
         ],
-        "nexts": "IJLOSTZ"
+        "nexts": "IJLOSTZ",
+        "clear_line": 4,
+        "use_hold": true,
+        "drop_type": 0
       }
     }"#,
     )
@@ -75,6 +81,9 @@ mod tests {
       body: AnalyzePcMessageReqBody {
         field: [0; 300],
         nexts: String::from("IJLOSTZ"),
+        clear_line: 4,
+        use_hold: true,
+        drop_type: 0,
       },
     };
 

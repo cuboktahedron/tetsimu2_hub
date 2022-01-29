@@ -17,6 +17,7 @@ use crate::tetsimu2::core::MAX_FIELD_WIDTH;
 use crate::tetsimu2::field::Field;
 use anyhow::Context;
 use anyhow::Result;
+use core::convert::TryFrom;
 use log::{debug, info, warn};
 use num_traits::FromPrimitive;
 use std::convert::TryInto;
@@ -28,6 +29,38 @@ use std::thread;
 use uuid::Uuid;
 
 const MAIN_JAR: &str = "sfinder.jar";
+
+#[derive(Debug, PartialEq, Eq)]
+enum DropType {
+  SoftDrop = 0,
+  HardDrop = 1,
+  OneHundredEighty = 2,
+  TSoftDrop = 3,
+  AnyTSpin = 4,
+  Tss = 5,
+  Tsd = 6,
+  Tst = 7,
+}
+
+impl TryFrom<u8> for DropType {
+  type Error = String;
+
+  fn try_from(n: u8) -> Result<Self, Self::Error> {
+    let t = match n {
+      0 => DropType::SoftDrop,
+      1 => DropType::HardDrop,
+      2 => DropType::OneHundredEighty,
+      3 => DropType::TSoftDrop,
+      4 => DropType::AnyTSpin,
+      5 => DropType::Tss,
+      6 => DropType::Tsd,
+      7 => DropType::Tst,
+      _ => return Err(format!("Cannot convert from '{}' to DropType", n)),
+    };
+
+    Ok(t)
+  }
+}
 
 pub struct AnalyzePcProcesssor {
   out: ws::Sender,
@@ -101,11 +134,40 @@ impl AnalyzePcProcesssor {
     let field = Field { data };
     debug!("field:\n {:?}", field);
 
-    let clear_line = self.decide_clear_line(&field);
+    let clear_line = if message.body.clear_line == 0 {
+      self.decide_clear_line(&field)
+    } else {
+      message.body.clear_line as i32
+    };
     debug!("clear_line: {}", clear_line);
     if clear_line == -1 {
       return ExecuteRequestResult::OtherError(String::from("Empty cell must be multiples of 4"));
     }
+
+    let use_hold = if message.body.use_hold {
+      "use"
+    } else {
+      "avoid"
+    };
+
+    let drop_type = match DropType::try_from(message.body.drop_type) {
+      Ok(drop_type) => match drop_type {
+        DropType::SoftDrop => "softdrop",
+        DropType::HardDrop => "harddrop",
+        DropType::Tss => "tss",
+        DropType::Tsd => "tsd",
+        DropType::Tst => "tst",
+        _ => {
+          return ExecuteRequestResult::OtherError(format!(
+            "Unsupported drop type passed({})",
+            drop_type as u8
+          ))
+        }
+      },
+      Err(e) => {
+        return ExecuteRequestResult::OtherError(String::from(e));
+      }
+    };
 
     let tetfu_encoder = TetfuEncoder::new();
     let tetfu = tetfu_encoder.encode(&Tetsimu2Content {
@@ -123,6 +185,10 @@ impl AnalyzePcProcesssor {
       .arg(&message.body.nexts)
       .arg("--clear-line")
       .arg(clear_line.to_string())
+      .arg("--hold")
+      .arg(use_hold)
+      .arg("--drop")
+      .arg(drop_type)
       .arg("--format")
       .arg("html")
       .current_dir(settings.solution_finder.path.clone().unwrap())
