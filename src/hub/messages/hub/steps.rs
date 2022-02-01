@@ -13,7 +13,7 @@ pub struct StepsMessageBody {
   pub steps: Vec<Step>,
 }
 
-#[derive(Serialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Debug, PartialEq, Eq, Clone)]
 pub struct Step {
   pub r#type: u8,
   pub dir: u8,

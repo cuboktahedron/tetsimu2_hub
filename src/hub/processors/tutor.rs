@@ -138,7 +138,7 @@ impl TutorProcessor {
     info!("TutorProcessor is ready.");
 
     while !self.is_done.load(Ordering::Relaxed) {
-      std::thread::sleep(Duration::from_millis(250));
+      std::thread::sleep(Duration::from_millis(100));
 
       let mut status = self.status.lock().unwrap();
       let request_message_id = status.status_id.clone();
@@ -192,12 +192,26 @@ impl TutorProcessor {
         })
         .collect();
 
-      if steps != status.prev_steps {
+      if steps.is_empty() {
+        status.prev_steps = steps;
+        continue;
+      }
+
+      if status.prev_steps.is_empty() || steps[0] != status.prev_steps[0] {
         debug!("Steps changed.");
 
         status.prev_steps = steps;
         continue;
       }
+
+      if status.prev_steps == steps {
+        debug!("Steps unchanged.");
+
+        status.prev_steps = steps;
+        continue;
+      }
+
+      status.prev_steps = steps.clone();
 
       let steps = HubMessage::Steps(StepsMessage {
         header: HubMessageHeader {
@@ -263,8 +277,14 @@ impl TutorProcessor {
   fn update_current_stetus(&self, message: &NotifyStatusMessageReq) {
     debug!("Update current status. {:?}", message);
 
+    if !message.body.can_hold {
+      // This is because cold clear is not supported hold only movement
+      return;
+    }
+
     let mut status = self.status.lock().unwrap();
     status.status_id = message.header.message_id.clone();
+    status.prev_steps = vec![];
 
     let mut field = [[false; 10]; 40];
     for cell in 0..message.body.field.len() {
