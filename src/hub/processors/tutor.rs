@@ -204,13 +204,6 @@ impl TutorProcessor {
         continue;
       }
 
-      if status.prev_steps == steps {
-        debug!("Steps unchanged.");
-
-        status.prev_steps = steps;
-        continue;
-      }
-
       status.prev_steps = steps.clone();
 
       let steps = HubMessage::Steps(StepsMessage {
@@ -277,13 +270,14 @@ impl TutorProcessor {
   fn update_current_stetus(&self, message: &NotifyStatusMessageReq) {
     debug!("Update current status. {:?}", message);
 
+    let mut status = self.status.lock().unwrap();
+    status.status_id = message.header.message_id.clone();
+
     if !message.body.can_hold {
       // This is because cold clear is not supported hold only movement
       return;
     }
 
-    let mut status = self.status.lock().unwrap();
-    status.status_id = message.header.message_id.clone();
     status.prev_steps = vec![];
 
     let mut field = [[false; 10]; 40];
