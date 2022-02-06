@@ -25,34 +25,3 @@ impl LogMessage {
     }
   }
 }
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn serialize() {
-    let actual = serde_json::to_string(&LogMessage {
-      header: HubMessageHeader {
-        message_id: String::from("abcd"),
-      },
-      body: LogMessageBody {
-        message: String::from("log message"),
-      },
-    })
-    .unwrap();
-
-    #[rustfmt::skip]
-    let expected = String::from("")
-      + "{"
-        + "\"header\":{"
-          + "\"message_id\":\"abcd\""
-        + "},"
-        + "\"body\":{"
-          + "\"message\":\"log message\""
-        + "}"
-      + "}";
-
-    assert_eq!(actual, expected);
-  }
-}

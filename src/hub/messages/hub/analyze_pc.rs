@@ -16,38 +16,3 @@ pub struct AnalyzePcMessageResBody {
 pub enum AnalyzePcMessageResResult {
   Succeeded = 0,
 }
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn serialize() {
-    let actual = serde_json::to_string(&AnalyzePcMessageRes {
-      header: HubMessageResHeader {
-        message_id: String::from("abcd"),
-        request_message_id: String::from("efgh"),
-        result: 0,
-      },
-      body: AnalyzePcMessageResBody {
-        message: String::from("succeeded."),
-      },
-    })
-    .unwrap();
-
-    #[rustfmt::skip]
-    let expected = String::from("")
-        + "{"
-          + "\"header\":{"
-            + "\"message_id\":\"abcd\","
-            + "\"request_message_id\":\"efgh\","
-            + "\"result\":0"
-          + "},"
-          + "\"body\":{"
-            + "\"message\":\"succeeded.\""
-          + "}"
-        + "}";
-
-    assert_eq!(actual, expected);
-  }
-}
