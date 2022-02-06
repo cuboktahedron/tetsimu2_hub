@@ -1,6 +1,6 @@
 [package]
 name = "tetsimu2_hub"
-version = "0.9.0"
+version = "1.0.0"
 edition = "2018"
 license = "MIT"
 

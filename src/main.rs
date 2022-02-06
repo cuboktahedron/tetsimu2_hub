@@ -10,7 +10,7 @@ use tetsimu2_hub::settings::HubSettings;
 use tetsimu2_hub::settings::Settings;
 use tetsimu2_hub::settings::SolutionFinderSettings;
 
-const VERSION: &str = "0.9.0";
+const VERSION: &str = "1.0.0";
 
 fn start_server(settings: Settings) -> Result<()> {
     HubServer::listen(Arc::new(settings))
