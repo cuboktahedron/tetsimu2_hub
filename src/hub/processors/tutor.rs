@@ -31,6 +31,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
+use std::time::Instant;
 use uuid::Uuid;
 
 impl From<Tetromino> for Piece {
@@ -92,10 +93,20 @@ pub struct TutorProcessor {
   tutor_if: Mutex<cold_clear::Interface>,
 }
 
-#[derive(Default)]
 struct Tetsimu2Status {
   status_id: String,
   prev_steps: Vec<Step>,
+  last_sent_time: Instant,
+}
+
+impl Default for Tetsimu2Status {
+  fn default() -> Self {
+    Tetsimu2Status {
+      status_id: String::default(),
+      prev_steps: Vec::default(),
+      last_sent_time: Instant::now(),
+    }
+  }
 }
 
 impl Tetsimu2Processor for TutorProcessor {
@@ -204,6 +215,10 @@ impl TutorProcessor {
         continue;
       }
 
+      if status.prev_steps == steps && status.last_sent_time.elapsed().as_millis() < 1000 {
+        continue;
+      }
+
       status.prev_steps = steps.clone();
 
       let steps = HubMessage::Steps(StepsMessage {
@@ -223,6 +238,8 @@ impl TutorProcessor {
           error!("{}", e);
         }
       }
+
+      status.last_sent_time = Instant::now();
     }
 
     self.is_done.store(true, Ordering::Relaxed);
