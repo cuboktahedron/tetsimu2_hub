@@ -8,7 +8,7 @@
   [solution-finder](https://github.com/knewjade/solution-finder/)と連携して現在のフィールド状態からパフェ手順を探します。
   この機能を使用するには、別途solution-finderをDLする必要があります。
 - Tutor機能
-  AI([cold-clear](https://github.com/MinusKelvin/cold-clear)) に次の設置手順を教えてもらう。
+  AI([cold-clear](https://github.com/MinusKelvin/cold-clear)) に次の設置手順を示してもらうことができます。
 
 # ライセンス
 
