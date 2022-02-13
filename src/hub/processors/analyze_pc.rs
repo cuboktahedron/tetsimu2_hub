@@ -1,5 +1,7 @@
 use crate::hub::messages::hub::analyze_pc::AnalyzePcMessageRes;
 use crate::hub::messages::hub::analyze_pc::AnalyzePcMessageResBody;
+use crate::hub::messages::hub::analyze_pc::AnalyzePcMessageResBodyItem;
+use crate::hub::messages::hub::analyze_pc::AnalyzePcMessageResBodyItemDetail;
 use crate::hub::messages::hub::analyze_pc::AnalyzePcMessageResResult;
 use crate::hub::messages::hub::header::HubMessageResHeader;
 use crate::hub::messages::hub::log::LogMessage;
@@ -10,6 +12,7 @@ use crate::hub::processors::tetsimu2_processor::BeforeExecuteResult;
 use crate::hub::processors::tetsimu2_processor::Tetsimu2Processor;
 use crate::settings::Settings;
 use crate::tetfu::core::Tetsimu2Content;
+use crate::tetfu::tetfu_decoder::TetfuDecoder;
 use crate::tetfu::tetfu_encoder::TetfuEncoder;
 use crate::tetsimu2::core::FieldCellValue;
 use crate::tetsimu2::core::MAX_FIELD_HEIGHT;
@@ -20,8 +23,12 @@ use anyhow::Result;
 use core::convert::TryFrom;
 use log::{debug, info, warn};
 use num_traits::FromPrimitive;
+use scraper::Selector;
 use std::convert::TryInto;
+use std::fs::File;
+use std::io::Read;
 use std::path::Path;
+use std::path::PathBuf;
 use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -29,6 +36,8 @@ use std::thread;
 use uuid::Uuid;
 
 const MAIN_JAR: &str = "sfinder.jar";
+const MINIMAL_FILE: &str = "output/path_minimal.html";
+const UNIQUE_FILE: &str = "output/path_unique.html";
 
 #[derive(Debug, PartialEq, Eq)]
 enum DropType {
@@ -95,7 +104,6 @@ impl AnalyzePcProcesssor {
   fn execute_analyze_pc(&self, message: &AnalyzePcMessageReq) {
     let request_result = self.execute_request(&message);
     self.execute_response(request_result, &message);
-    // TODO: How to handle panic
     self.is_done.store(true, Ordering::Relaxed);
   }
 
@@ -191,7 +199,7 @@ impl AnalyzePcProcesssor {
       .arg(drop_type)
       .arg("--format")
       .arg("html")
-      .current_dir(settings.solution_finder.path.clone().unwrap())
+      .current_dir(settings.solution_finder.path.as_ref().unwrap())
       .output();
 
     let output = match output {
@@ -206,8 +214,14 @@ impl AnalyzePcProcesssor {
     if output.status.success() {
       let stdout = String::from_utf8_lossy(&output.stdout);
       debug!("stdout:\n{}", &stdout);
-      let found_paths = self.analyze_path_nums(&stdout);
-      return ExecuteRequestResult::Succeeded(found_paths);
+      match self.create_response_body(&stdout) {
+        Ok(body) => {
+          return ExecuteRequestResult::Succeeded(body);
+        }
+        Err(e) => {
+          return ExecuteRequestResult::OtherError(e);
+        }
+      };
     } else {
       let err_message = String::from_utf8_lossy(&output.stderr);
       warn!("stderr:\n{}", err_message);
@@ -257,6 +271,89 @@ impl AnalyzePcProcesssor {
     }
   }
 
+  fn create_response_body(&self, stdout: &str) -> Result<AnalyzePcMessageResBody, String> {
+    let message = self.analyze_path_nums(stdout);
+
+    let settings = self.settings.clone();
+    let sf_root = settings.solution_finder.path.as_ref().unwrap();
+    let minimal_items = self.read_html(Path::new(&sf_root).join(MINIMAL_FILE))?;
+    let unique_items = self.read_html(Path::new(&sf_root).join(UNIQUE_FILE))?;
+
+    Ok(AnalyzePcMessageResBody {
+      message,
+      minimal_items,
+      unique_items,
+    })
+  }
+
+  fn read_html(&self, path: PathBuf) -> Result<Vec<AnalyzePcMessageResBodyItem>, String> {
+    let mut f = match File::open(&path) {
+      Ok(file) => file,
+      Err(_) => {
+        return Err(format!(
+          "File({}) cannot be opened.",
+          path.into_os_string().into_string().unwrap()
+        ))
+      }
+    };
+
+    let mut contents = String::new();
+    if let Err(e) = f.read_to_string(&mut contents) {
+      return Err(e.to_string());
+    }
+
+    let not_deleted_selector = Selector::parse("#notdeletedline a").unwrap();
+    let deleted_line_selector = Selector::parse("#deletedline a").unwrap();
+
+    let doc = scraper::Html::parse_document(&contents);
+    let not_deleted_details = self.read_path_doc(&doc, &not_deleted_selector)?;
+    let deleted_details = self.read_path_doc(&doc, &deleted_line_selector)?;
+
+    let mut items = vec![];
+    if !not_deleted_details.is_empty() {
+      items.push(AnalyzePcMessageResBodyItem {
+        title: String::from("Without line deletion"),
+        detail: not_deleted_details,
+      });
+    }
+
+    if !deleted_details.is_empty() {
+      items.push(AnalyzePcMessageResBodyItem {
+        title: String::from("With line deletion"),
+        detail: deleted_details,
+      });
+    }
+
+    Ok(items)
+  }
+
+  fn read_path_doc(
+    &self,
+    doc: &scraper::Html,
+    selector: &scraper::Selector,
+  ) -> Result<Vec<AnalyzePcMessageResBodyItemDetail>, String> {
+    let mut details = vec![];
+
+    for anchor in doc.select(&selector) {
+      let elem = anchor.value();
+      let href = elem.attr("href").unwrap();
+      let text = anchor.text().next().unwrap();
+      let settles = text
+        .split(' ')
+        .map(|x| x.chars().next().unwrap())
+        .collect::<String>();
+
+      let decoder = TetfuDecoder::new();
+      let tetsimu2_content = decoder.decode(href.to_string())?;
+      details.push(AnalyzePcMessageResBodyItemDetail {
+        settles,
+        field: tetsimu2_content.field.data.map(|x| x as u8),
+      });
+    }
+
+    Ok(details)
+  }
+
   fn analyze_path_nums(&self, stdout: &str) -> String {
     let mut found_paths = vec![];
     let lines = stdout.split("\n").map(|s| s.trim());
@@ -271,9 +368,7 @@ impl AnalyzePcProcesssor {
 
   fn execute_response(&self, request_result: ExecuteRequestResult, request: &AnalyzePcMessageReq) {
     let res_result = match request_result {
-      ExecuteRequestResult::Succeeded(found_paths) => {
-        self.execute_response_succeeced(request, found_paths)
-      }
+      ExecuteRequestResult::Succeeded(body) => self.execute_response_succeeced(request, body),
       ExecuteRequestResult::OtherError(message) => {
         self.execute_response_other_error(request, message)
       }
@@ -289,7 +384,7 @@ impl AnalyzePcProcesssor {
   fn execute_response_succeeced(
     &self,
     request: &AnalyzePcMessageReq,
-    found_paths: String,
+    body: AnalyzePcMessageResBody,
   ) -> Result<()> {
     let response = HubMessage::AnalyzePc(AnalyzePcMessageRes {
       header: HubMessageResHeader {
@@ -297,9 +392,7 @@ impl AnalyzePcProcesssor {
         request_message_id: request.header.message_id.clone(),
         result: AnalyzePcMessageResResult::Succeeded as i32,
       },
-      body: AnalyzePcMessageResBody {
-        message: found_paths,
-      },
+      body,
     });
 
     let json = serde_json::to_string(&response)?;
@@ -322,6 +415,8 @@ impl AnalyzePcProcesssor {
       },
       body: AnalyzePcMessageResBody {
         message: String::from(message),
+        minimal_items: vec![],
+        unique_items: vec![],
       },
     });
 
@@ -344,7 +439,7 @@ impl AnalyzePcProcesssor {
 }
 
 enum ExecuteRequestResult {
-  Succeeded(String),
+  Succeeded(AnalyzePcMessageResBody),
   OtherError(String),
 }
 

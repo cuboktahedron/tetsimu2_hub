@@ -14,6 +14,7 @@ log = "0.4.14"
 num-derive = "0.3.3"
 num-traits = "0.2.14"
 rand = "0.8.4"
+scraper = "0.12.0"
 serde = { version = "1.0.126", features = ["derive"] }
 serde-big-array = "0.3.2"
 serde_json = "1.0.64"
@@ -21,7 +22,7 @@ substring = "1.4.5"
 toml = "0.5.8"
 uuid = { version = "0.8.2", features = ["v4"] }
 ws = "0.9.1"
-cold-clear = { git = "https://github.com/MinusKelvin/cold-clear/" }
+cold-clear = { git = "https://github.com/MinusKelvin/cold-clear/"}
 libtetris = { git = "https://github.com/MinusKelvin/cold-clear/" }
 
 [dev-dependencies]
