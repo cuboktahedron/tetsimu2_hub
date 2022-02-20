@@ -59,7 +59,7 @@ impl TetfuEncoder {
 
   fn encode_for_field(&self, field: &Field, enc: &mut Vec<i32>) -> i32 {
     let mut repeat_cell_count = 0;
-    let mut prev_cell = field.get_cell(0, MAX_TETFU_FIELD_HEIGHT - 1) as i32 + 8;
+    let mut prev_cell = self.convert_cell(field.get_cell(0, MAX_TETFU_FIELD_HEIGHT - 1)) + 8;
 
     for p in 1..(MAX_TETFU_FIELD_SIZE_EX) {
       let cell = if p >= MAX_TETFU_FIELD_SIZE {
@@ -67,7 +67,7 @@ impl TetfuEncoder {
       } else {
         let x = p % MAX_FIELD_WIDTH;
         let y = (MAX_TETFU_FIELD_HEIGHT - 1) - (p / MAX_FIELD_WIDTH); // 0 ～ MAX_TETFU_FIELD_HEIGHT
-        field.get_cell(x, y) as i32 + 8
+        self.convert_cell(field.get_cell(x, y)) + 8
       };
       if cell != prev_cell {
         let tmp = prev_cell * MAX_TETFU_FIELD_SIZE_EX + repeat_cell_count;
@@ -128,6 +128,20 @@ impl TetfuEncoder {
       tmp = tmp / 64;
       enc.push(tmp % 64);
       i += 4;
+    }
+  }
+
+  fn convert_cell(&self, cell: FieldCellValue) -> i32 {
+    match cell {
+      FieldCellValue::None => 0,
+      FieldCellValue::I => 1,
+      FieldCellValue::J => 6,
+      FieldCellValue::L => 2,
+      FieldCellValue::O => 3,
+      FieldCellValue::S => 7,
+      FieldCellValue::T => 5,
+      FieldCellValue::Z => 4,
+      FieldCellValue::Garbage => 8,
     }
   }
 }
@@ -204,6 +218,24 @@ mod tests {
         comment: String::from("Comment"),
       }),
       "v115@khwhJeAAPHADHnGEF2+CA"
+    );
+
+    let mut field = Field::new();
+    field.set_cell(0, 0, FieldCellValue::None);
+    field.set_cell(1, 0, FieldCellValue::I);
+    field.set_cell(2, 0, FieldCellValue::J);
+    field.set_cell(3, 0, FieldCellValue::L);
+    field.set_cell(4, 0, FieldCellValue::O);
+    field.set_cell(5, 0, FieldCellValue::S);
+    field.set_cell(6, 0, FieldCellValue::T);
+    field.set_cell(7, 0, FieldCellValue::Z);
+    field.set_cell(8, 0, FieldCellValue::Garbage);
+    assert_eq!(
+      tetfu.encode(&Tetsimu2Content {
+        field: field,
+        comment: String::from("Comment"),
+      }),
+      "v115@chwhg0glQpQ4wwAtA8KeAAPHADHnGEF2+CA"
     );
 
     let field = Field::new();

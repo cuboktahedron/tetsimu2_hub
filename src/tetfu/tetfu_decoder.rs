@@ -4,8 +4,8 @@ use crate::tetfu::core::ENCODE_TABLE;
 use crate::tetfu::core::MAX_TETFU_FIELD_HEIGHT;
 use crate::tetfu::core::MAX_TETFU_FIELD_SIZE_EX;
 use crate::tetfu::core::MAX_TETFU_FIELD_WIDTH;
+use crate::tetsimu2::core::FieldCellValue;
 use crate::tetsimu2::field::Field;
-use num_traits::FromPrimitive;
 use substring::Substring;
 
 pub struct TetfuDecoder;
@@ -13,6 +13,21 @@ pub struct TetfuDecoder;
 impl TetfuDecoder {
   pub fn new() -> TetfuDecoder {
     TetfuDecoder {}
+  }
+
+  fn convert_cell(&self, cell: i32) -> Option<FieldCellValue> {
+    match cell {
+      0 => Some(FieldCellValue::None),
+      1 => Some(FieldCellValue::I),
+      6 => Some(FieldCellValue::J),
+      2 => Some(FieldCellValue::L),
+      3 => Some(FieldCellValue::O),
+      7 => Some(FieldCellValue::S),
+      5 => Some(FieldCellValue::T),
+      4 => Some(FieldCellValue::Z),
+      8 => Some(FieldCellValue::Garbage),
+      _ => None,
+    }
   }
 
   pub fn decode(&self, tetfu_parameter: String) -> Result<Tetsimu2Content, String> {
@@ -41,7 +56,7 @@ impl TetfuDecoder {
       let tmp = v1 + v2 * 64;
       let repeat_cell_count = tmp % MAX_TETFU_FIELD_SIZE_EX;
       let cell = (tmp / MAX_TETFU_FIELD_SIZE_EX) % 17 - 8;
-      let cell = FromPrimitive::from_i32(cell).ok_or(format!(
+      let cell = self.convert_cell(cell).ok_or(format!(
         "Cannot convert cell value({}) to FieldCellValue.",
         cell
       ))?;
@@ -195,6 +210,24 @@ mod tests {
     field.set_cell(9, 0, FieldCellValue::I);
     assert_eq!(
       tetfu.decode(String::from("v115@khwhJeAAPHADHnGEF2+CA")),
+      Ok(Tetsimu2Content {
+        field: field,
+        comment: String::from("Comment")
+      }),
+    );
+
+    let mut field = Field::new();
+    field.set_cell(0, 0, FieldCellValue::None);
+    field.set_cell(1, 0, FieldCellValue::I);
+    field.set_cell(2, 0, FieldCellValue::J);
+    field.set_cell(3, 0, FieldCellValue::L);
+    field.set_cell(4, 0, FieldCellValue::O);
+    field.set_cell(5, 0, FieldCellValue::S);
+    field.set_cell(6, 0, FieldCellValue::T);
+    field.set_cell(7, 0, FieldCellValue::Z);
+    field.set_cell(8, 0, FieldCellValue::Garbage);
+    assert_eq!(
+      tetfu.decode(String::from("v115@chwhg0glQpQ4wwAtA8KeAAPHADHnGEF2+CA")),
       Ok(Tetsimu2Content {
         field: field,
         comment: String::from("Comment")
