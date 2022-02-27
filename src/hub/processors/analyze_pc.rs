@@ -108,8 +108,6 @@ impl AnalyzePcProcesssor {
   }
 
   fn execute_request(&self, message: &AnalyzePcMessageReq) -> ExecuteRequestResult {
-    self.log("Start analyze.");
-
     let settings = self.settings.clone();
     let sf_root = if let Some(x) = &settings.solution_finder.path {
       x
@@ -201,6 +199,8 @@ impl AnalyzePcProcesssor {
       .arg("html")
       .current_dir(settings.solution_finder.path.as_ref().unwrap())
       .output();
+
+    self.log("Analyzing...");
 
     let output = match output {
       Ok(x) => x,
