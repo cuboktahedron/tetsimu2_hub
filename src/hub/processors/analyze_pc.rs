@@ -280,6 +280,7 @@ impl AnalyzePcProcesssor {
     let unique_items = self.read_html(Path::new(&sf_root).join(UNIQUE_FILE))?;
 
     Ok(AnalyzePcMessageResBody {
+      succeeded: true,
       message,
       minimal_items,
       unique_items,
@@ -414,6 +415,7 @@ impl AnalyzePcProcesssor {
         result: AnalyzePcMessageResResult::Succeeded as i32,
       },
       body: AnalyzePcMessageResBody {
+        succeeded: false,
         message: String::from(message),
         minimal_items: vec![],
         unique_items: vec![],

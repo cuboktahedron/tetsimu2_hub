@@ -12,6 +12,7 @@ pub struct AnalyzePcMessageRes {
 
 #[derive(Serialize, Debug, PartialEq, Eq)]
 pub struct AnalyzePcMessageResBody {
+  pub succeeded: bool,
   pub message: String,
   pub minimal_items: Vec<AnalyzePcMessageResBodyItem>,
   pub unique_items: Vec<AnalyzePcMessageResBodyItem>,
