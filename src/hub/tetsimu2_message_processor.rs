@@ -41,7 +41,7 @@ impl Tetsimu2MessageProcessor {
           if let Some(processor) = &self.processor {
             match processor.before_execute(&message) {
               BeforeExecuteResult::Deny => {
-                self.log("Access denyed due to previous process is not done yet.");
+                self.log("Access denied due to previous process is not done yet.");
                 continue;
               }
               BeforeExecuteResult::Halt => {
