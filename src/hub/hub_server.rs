@@ -1,6 +1,8 @@
+use crate::constants::HUB_VERSION;
 use crate::hub::messages::hub::header::HubMessageHeader;
 use crate::hub::messages::hub::unhandled::UnhandledMessage;
 use crate::hub::messages::hub::unhandled::UnhandledMessageBody;
+use crate::hub::messages::hub::version::VersionMessage;
 use crate::hub::messages::hub::HubMessage;
 use crate::hub::messages::tetsimu2::Tetsimu2Message;
 use crate::hub::tetsimu2_message_processor::Tetsimu2MessageProcessor;
@@ -24,6 +26,23 @@ pub struct HubServer {
 impl Handler for HubServer {
   fn on_open(&mut self, _handshake: Handshake) -> ws::Result<()> {
     info!("Connected[{}]", self.out.connection_id());
+
+    let message = HubMessage::Version(VersionMessage::create(HUB_VERSION));
+    let send_message = serde_json::to_string(&message)
+      .context(format!("Failed to serialize message. ({:?})", message));
+    let send_result = match send_message {
+      Ok(send_message) => self
+        .out
+        .send(send_message)
+        .context("Could not send version message."),
+      Err(e) => {
+        return Err(ws::Error::new(ws::ErrorKind::Internal, format!("{:?}", e)));
+      }
+    };
+
+    if let Err(e) = send_result {
+      return Err(ws::Error::new(ws::ErrorKind::Internal, format!("{:?}", e)));
+    }
 
     let (t2_t, t2_r) = mpsc::channel::<Tetsimu2Message>();
     Tetsimu2MessageProcessor::start(t2_r, self.out.clone(), self.settings.clone());
