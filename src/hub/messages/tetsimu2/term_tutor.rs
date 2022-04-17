@@ -20,6 +20,7 @@ mod tests {
       r#"
     {
       "header": {
+        "version": "1.0.0",
         "message_id": "abcd"
       },
       "body": {}
@@ -29,6 +30,7 @@ mod tests {
 
     let expected = TermTutorMessageReq {
       header: Tetsimu2MessageHeader {
+        version: String::from("1.0.0"),
         message_id: String::from("abcd"),
       },
       body: TermTutorMessageReqBody {},

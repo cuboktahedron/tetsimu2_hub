@@ -10,6 +10,7 @@ use crate::hub::messages::hub::term_tutor::TermTutorMessageRes;
 use crate::hub::messages::hub::term_tutor::TermTutorMessageResBody;
 use crate::hub::messages::hub::term_tutor::TermTutorMessageResResult;
 use crate::hub::messages::hub::HubMessage;
+use crate::hub::messages::hub::VERSION;
 use crate::hub::messages::tetsimu2::init_tutor::InitTutorMessageReq;
 use crate::hub::messages::tetsimu2::notify_status::NotifyStatusMessageReq;
 use crate::hub::messages::tetsimu2::term_tutor::TermTutorMessageReq;
@@ -223,6 +224,7 @@ impl TutorProcessor {
 
       let steps = HubMessage::Steps(StepsMessage {
         header: HubMessageHeader {
+          version: String::from(VERSION),
           message_id: Uuid::new_v4().to_string(),
         },
         body: StepsMessageBody {
@@ -250,6 +252,7 @@ impl TutorProcessor {
 
     let response = HubMessage::InitTutor(InitTutorMessageRes {
       header: HubMessageResHeader {
+        version: String::from(VERSION),
         message_id: Uuid::new_v4().to_string(),
         request_message_id: message.header.message_id.clone(),
         result: InitTutorMessageResResult::Succeeded as i32,
@@ -269,6 +272,7 @@ impl TutorProcessor {
 
     let response = HubMessage::TermTutor(TermTutorMessageRes {
       header: HubMessageResHeader {
+        version: String::from(VERSION),
         message_id: Uuid::new_v4().to_string(),
         request_message_id: message.header.message_id.clone(),
         result: TermTutorMessageResResult::Succeeded as i32,

@@ -16,6 +16,8 @@ use crate::hub::messages::hub::unhandled::UnhandledMessage;
 use crate::hub::messages::hub::version::VersionMessage;
 use serde::Serialize;
 
+pub const VERSION: &str = "1.0.0";
+
 #[derive(Serialize, Debug, PartialEq, Eq)]
 pub enum HubMessage {
   AnalyzePc(AnalyzePcMessageRes),

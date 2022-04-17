@@ -20,6 +20,7 @@ mod tests {
   fn deserialize() {
     let actual = serde_json::to_string(&UnhandledMessage {
       header: HubMessageHeader {
+        version: String::from("1.0.0"),
         message_id: String::from("abcd"),
       },
       body: UnhandledMessageBody {
@@ -32,6 +33,7 @@ mod tests {
     let expected = String::from("")
       + "{"
         + "\"header\":{"
+          + "\"version\":\"1.0.0\","
           + "\"message_id\":\"abcd\""
         + "},"
         + "\"body\":{"

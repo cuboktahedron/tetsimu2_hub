@@ -4,6 +4,7 @@ use crate::hub::messages::hub::unhandled::UnhandledMessage;
 use crate::hub::messages::hub::unhandled::UnhandledMessageBody;
 use crate::hub::messages::hub::version::VersionMessage;
 use crate::hub::messages::hub::HubMessage;
+use crate::hub::messages::hub::VERSION;
 use crate::hub::messages::tetsimu2::Tetsimu2Message;
 use crate::hub::tetsimu2_message_processor::Tetsimu2MessageProcessor;
 use crate::settings::Settings;
@@ -96,6 +97,7 @@ impl HubServer {
   fn handle_unhandled_message(&self, received_message: &str) -> Result<()> {
     let message = HubMessage::Unhandled(UnhandledMessage {
       header: HubMessageHeader {
+        version: String::from(VERSION),
         message_id: String::from(Uuid::new_v4().to_string()),
       },
       body: UnhandledMessageBody {

@@ -29,6 +29,7 @@ mod tests {
   fn deserialize() {
     let actual = serde_json::to_string(&StepsMessage {
       header: HubMessageHeader {
+        version: String::from("1.0.0"),
         message_id: String::from("abcd"),
       },
       body: StepsMessageBody {
@@ -51,7 +52,7 @@ mod tests {
     })
     .unwrap();
 
-    let expected = r#"{"header":{"message_id":"abcd"},"body":{"request_message_id":"123","steps":[{"type":1,"dir":2,"x":3,"y":4},{"type":2,"dir":3,"x":8,"y":0}]}}"#;
+    let expected = r#"{"header":{"version":"1.0.0","message_id":"abcd"},"body":{"request_message_id":"123","steps":[{"type":1,"dir":2,"x":3,"y":4},{"type":2,"dir":3,"x":8,"y":0}]}}"#;
 
     assert_eq!(actual, expected);
   }

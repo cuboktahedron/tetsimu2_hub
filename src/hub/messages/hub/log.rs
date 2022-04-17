@@ -1,4 +1,5 @@
 use crate::hub::messages::hub::header::HubMessageHeader;
+use crate::hub::messages::hub::VERSION;
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -17,6 +18,7 @@ impl LogMessage {
   pub fn create(message: &str) -> LogMessage {
     LogMessage {
       header: HubMessageHeader {
+        version: String::from(VERSION),
         message_id: Uuid::new_v4().to_string(),
       },
       body: LogMessageBody {

@@ -6,6 +6,7 @@ use crate::hub::messages::hub::analyze_pc::AnalyzePcMessageResResult;
 use crate::hub::messages::hub::header::HubMessageResHeader;
 use crate::hub::messages::hub::log::LogMessage;
 use crate::hub::messages::hub::HubMessage;
+use crate::hub::messages::hub::VERSION;
 use crate::hub::messages::tetsimu2::analyze_pc::AnalyzePcMessageReq;
 use crate::hub::messages::tetsimu2::Tetsimu2Message;
 use crate::hub::processors::tetsimu2_processor::BeforeExecuteResult;
@@ -389,6 +390,7 @@ impl AnalyzePcProcesssor {
   ) -> Result<()> {
     let response = HubMessage::AnalyzePc(AnalyzePcMessageRes {
       header: HubMessageResHeader {
+        version: String::from(VERSION),
         message_id: Uuid::new_v4().to_string(),
         request_message_id: request.header.message_id.clone(),
         result: AnalyzePcMessageResResult::Succeeded as i32,
@@ -410,6 +412,7 @@ impl AnalyzePcProcesssor {
   ) -> Result<()> {
     let response = HubMessage::AnalyzePc(AnalyzePcMessageRes {
       header: HubMessageResHeader {
+        version: String::from(VERSION),
         message_id: Uuid::new_v4().to_string(),
         request_message_id: request.header.message_id.clone(),
         result: AnalyzePcMessageResResult::Succeeded as i32,
