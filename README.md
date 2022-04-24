@@ -38,6 +38,10 @@ MIT
 - [toml](https://docs.rs/toml/0.5.3/toml/)
 - [uuid](https://docs.rs/uuid/)
 
+## ISC 
+
+- [scraper](https://github.com/causal-agent/scraper)
+
 ## MIT
 
 - [ws](https://docs.rs/ws/)
